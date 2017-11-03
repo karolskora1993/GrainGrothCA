@@ -20,7 +20,7 @@ class Canvas(QWidget):
     def paintEvent(self, e):
         qp = QPainter()
         qp.begin(self)
-        # self._draw_points(qp)
+        self._draw_points(qp)
         qp.end()
 
     def _draw_points(self, qp):

@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import QRect
 from Canvas import Canvas
 from Mesh import Mesh
+from Thread import Thread
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 800
@@ -106,8 +107,8 @@ class MainWindow(QMainWindow):
                          MainWindow.geometry.topLeft().y(),
                          CANVAS_WIDTH,
                          CANVAS_HEIGHT)
-        mesh = Mesh(width, height)
-        self._canvas = Canvas(geometry, mesh, width, height)
+        self._mesh = Mesh(width, height)
+        self._canvas = Canvas(geometry, self._mesh, width, height)
         self._canvas.show()
 
 
@@ -119,11 +120,13 @@ class MainWindow(QMainWindow):
 
     def start_btn_clicked(self):
         btn = self.sender()
-        if self._started:
+        if self._mesh.is_running():
             btn.setText("START")
         else:
             btn.setText("STOP")
-        self._started = not self._started
+            thread = Thread(self._mesh)
+            thread.update_ui.connect(self._update_UI())
+        self._mesh.change_started()
 
     def _import_txt_triggered(self):
         print("import txt")
@@ -136,6 +139,9 @@ class MainWindow(QMainWindow):
 
     def _export_bmp_triggered(self):
         print("export bmp")
+
+    def update_UI(self):
+        self._canvas.repaint()
 
 
 

@@ -9,6 +9,7 @@ class Mesh:
         self._y = y
         self._init_points()
         self._periodic = False
+        self._started = False
         self._nhood = NHOODS[0]
 
     def _init_points(self):
@@ -19,6 +20,12 @@ class Mesh:
 
     def change_periodic(self):
         self._periodic = not self._periodic
+
+    def change_started(self):
+        self._started = not self._started
+
+    def is_running(self):
+        return self._started
 
     def is_completed(self):
         for row in self._points:
