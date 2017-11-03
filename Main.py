@@ -4,7 +4,7 @@ from MainWindow import MainWindow
 
 def main():
     app = QApplication(sys.argv)
-    main_win = MainWindow()
+    main_win = MainWindow(app)
     main_win.show()
     sys.exit(app.exec_())
 

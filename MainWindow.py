@@ -1,16 +1,34 @@
 from PyQt5.QtWidgets import *
+from PyQt5.QtCore import QRect
 from Canvas import Canvas
+from Mesh import Mesh
+
+CANVAS_WIDTH = 800
+CANVAS_HEIGHT = 800
+
+MENU_WIDTH = 400
+MENU_HEIGHT = 400
+
+NHOODS = ('moore',)
+
 
 class MainWindow(QMainWindow):
 
-    def __init__(self):
+    geometry = QRect(700, 300, 400, 400)
+
+    def __init__(self, app):
         super().__init__()
+        self._app = app
+        MainWindow.geometry = QRect(app.desktop().screenGeometry().width() - MENU_WIDTH, 300, MENU_WIDTH, MENU_HEIGHT)
         self._init_ui()
         self._started = False
+        self._canvas = None
+        self._nhood = NHOODS[0]
+        self._periodic = False
 
     def _init_ui(self):
         self.setWindowTitle("Grain groth CA")
-        self.setGeometry(200, 200, 400, 400)
+        self.setGeometry(MainWindow.geometry)
         self._create_widgets()
         self._create_menu()
 
@@ -56,15 +74,15 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(gen_space_btn, 2, 1, 1, 4)
 
         main_layout.addWidget(QLabel('number of grains:'), 3, 1)
-        self._height = QLineEdit("10")
-        main_layout.addWidget(self._height, 3, 2)
+        self._grains = QLineEdit("10")
+        main_layout.addWidget(self._grains, 3, 2)
         gen_grains_btn = QPushButton("generate space")
         gen_grains_btn.clicked.connect(self._gen_grains_btn_clicked)
         main_layout.addWidget(gen_grains_btn, 3, 3, 1, 2)
 
         main_layout.addWidget(QLabel('number of inclusions:'), 4, 1)
-        self._height = QLineEdit("10")
-        main_layout.addWidget(self._height, 4, 2)
+        self._inclusions = QLineEdit("10")
+        main_layout.addWidget(self._inclusions, 4, 2)
         gen_inclusions_btn = QPushButton("generate inclusions")
         gen_inclusions_btn.clicked.connect(self.gen_inclusions_btn_clicked)
         main_layout.addWidget(gen_inclusions_btn, 4, 3, 1, 2)
@@ -80,7 +98,18 @@ class MainWindow(QMainWindow):
 
 
     def _gen_space_btn_clicked(self):
-        print("generate space")
+        width = int(self._width.text())
+        height = int(self._height.text())
+        if self._canvas:
+            self._canvas.close()
+        geometry = QRect(MainWindow.geometry.topLeft().x() - CANVAS_WIDTH,
+                         MainWindow.geometry.topLeft().y(),
+                         CANVAS_WIDTH,
+                         CANVAS_HEIGHT)
+        mesh = Mesh(width, height)
+        self._canvas = Canvas(geometry, mesh, width, height)
+        self._canvas.show()
+
 
     def _gen_grains_btn_clicked(self):
         print("generate grains")
