@@ -10,7 +10,7 @@ CANVAS_HEIGHT = 800
 MENU_WIDTH = 400
 MENU_HEIGHT = 400
 
-DEF_POINTS_SIZE = QSize(400, 400)
+DEF_POINTS_SIZE = QSize(100, 100)
 
 
 class MainWindow(QMainWindow):
@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
         self._nhood = NHOODS[0]
         self._periodic = False
         self._canvas.show()
+        self._thread = None
 
     def _init_ui(self):
         self.setWindowTitle("Grain groth CA")
@@ -72,11 +73,11 @@ class MainWindow(QMainWindow):
         main_layout = QGridLayout()
 
         main_layout.addWidget(QLabel('width:'), 1, 1)
-        self._width = QLineEdit("400")
+        self._width = QLineEdit(str(DEF_POINTS_SIZE.width()))
         main_layout.addWidget(self._width, 1, 2)
 
         main_layout.addWidget(QLabel('height:'), 1, 3)
-        self._height = QLineEdit("400")
+        self._height = QLineEdit(str(DEF_POINTS_SIZE.height()))
         main_layout.addWidget(self._height, 1, 4)
 
         gen_space_btn = QPushButton("change space")
@@ -97,9 +98,13 @@ class MainWindow(QMainWindow):
         gen_inclusions_btn.clicked.connect(self.gen_inclusions_btn_clicked)
         main_layout.addWidget(gen_inclusions_btn, 4, 3, 1, 2)
 
-        start_btn = QPushButton("START")
-        start_btn.clicked.connect(self.start_btn_clicked)
-        main_layout.addWidget(start_btn, 5, 1, 1, 4)
+        self._start_btn = QPushButton("START")
+        self._start_btn.clicked.connect(self.start_btn_clicked)
+        main_layout.addWidget(self._start_btn, 5, 1, 1, 4)
+
+        clear_btn = QPushButton("CLEAR")
+        clear_btn.clicked.connect(self.clear_btn_clicked)
+        main_layout.addWidget(clear_btn, 6, 1, 1, 4)
 
         central_w = QWidget()
         central_w.setLayout(main_layout)
@@ -130,9 +135,21 @@ class MainWindow(QMainWindow):
             btn.setText("START")
         else:
             btn.setText("STOP")
-            thread = Thread(self._mesh)
-            thread.update_ui.connect(self._update_UI())
+            self._thread = Thread(self._mesh)
+            self._thread.update_ui.connect(self._update_UI)
+            self._thread.update_btn.connect(self._update_button)
+
+            self._thread.start()
         self._mesh.change_started()
+
+    def clear_btn_clicked(self):
+        width = int(self._width.text())
+        height = int(self._height.text())
+        self._mesh = Mesh(width, height)
+        self._canvas.close()
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh, width, height)
+        self._canvas.show()
+        self._canvas.repaint()
 
     def _import_txt_triggered(self):
         print("import txt")
@@ -146,8 +163,14 @@ class MainWindow(QMainWindow):
     def _export_bmp_triggered(self):
         print("export bmp")
 
-    def update_UI(self):
+    def _update_UI(self):
         self._canvas.repaint()
+
+    def _update_button(self):
+        if self._mesh.is_running():
+            self._start_btn.setText("START")
+        else:
+            self._start_btn.setText("STOP")
 
 
 

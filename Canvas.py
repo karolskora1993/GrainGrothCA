@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QColor, QPainter
-from PyQt5.QtCore import QPoint, QRect
+from PyQt5.QtCore import QSize
 from ColorPicker import ColorPicker
 
 class Canvas(QWidget):
@@ -9,7 +9,7 @@ class Canvas(QWidget):
         super().__init__()
         self._init_ui(geometry)
         self._mesh = mesh
-        self._size = QPoint(width, height)
+        self._nmb_of_points = QSize(width, height)
 
     def _init_ui(self, geometry):
         self.setGeometry(geometry)
@@ -24,11 +24,11 @@ class Canvas(QWidget):
         qp.end()
 
     def _draw_points(self, qp):
-        point_size = self.size().width() // self._size.x()
-        for i, row in enumerate(self._mesh):
-            for j, col in enumerate(row):
-                qp.setPen(ColorPicker.color(col.id))
-                qp.fillRect(j * point_size, i * point_size, point_size, point_size, ColorPicker.color(col.id))
+        point_size = self.size().width() // self._nmb_of_points.width()
+        for i, row in enumerate(self._mesh.get_points()):
+            for j, item in enumerate(row):
+                qp.setPen(ColorPicker.color(item.id))
+                qp.fillRect(j * point_size, i * point_size, point_size, point_size, ColorPicker.color(item.id))
 
 
 
