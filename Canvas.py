@@ -27,8 +27,8 @@ class Canvas(QWidget):
         point_size = self.size().width() // self._size.x()
         for i, row in enumerate(self._mesh):
             for j, col in enumerate(row):
-                qp.setPen(ColorPicker.color(col.id()))
-                qp.drawRect(j * point_size, i * point_size, self._size.x(), point_size, point_size)
+                qp.setPen(ColorPicker.color(col.id))
+                qp.fillRect(j * point_size, i * point_size, point_size, point_size, ColorPicker.color(col.id))
 
 
 

@@ -4,7 +4,7 @@ class ColorPicker:
     @staticmethod
     def color(id):
         if id == 0:
-            return QColor.black()
+            return QColor(0, 0, 0)
         else:
             if id % 2 == 0:
                 r = (255 - 15 * id) % 255

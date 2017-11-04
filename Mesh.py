@@ -1,16 +1,17 @@
 from PyQt5.QtCore import QSize
 from Point import Point
-from MainWindow import NHOODS
+from random import randint
+
+NHOODS = ('moore',)
 
 class Mesh:
     def __init__(self, x, y):
         self._size = QSize(x, y)
-        self._x = x
-        self._y = y
         self._init_points()
         self._periodic = False
         self._started = False
         self._nhood = NHOODS[0]
+        self._next_id = 1
 
     def _init_points(self):
         self._points = [[Point(x, y) for y in range(self._size.width())] for x in range(self._size.height())]
@@ -31,6 +32,16 @@ class Mesh:
         for row in self._points:
             if filter(lambda el: el.id == 0, row):
                 return False
+
+    def generate_grains(self, nmb_of_grains):
+        for i in range(nmb_of_grains):
+            x = randint(0, self._size.width())
+            y = randint(0, self._size.height())
+            while (self._points[x][y].id != 0):
+                x = randint(0, self._size.width())
+                y = randint(0, self._size.height())
+            self._points[x][y].id = self._next_id
+            self._next_id += 1
 
     def next(self):
         next_step = [row[:] for row in self._points]
@@ -182,3 +193,6 @@ class Mesh:
                     for l in range(-1, 2):
                         temp[k + 1][l + 1] = self._points[i + k][j + l]
         return temp
+
+    def __getitem__(self, item):
+        return self._points[item]

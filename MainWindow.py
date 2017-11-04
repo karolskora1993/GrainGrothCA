@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QRect
+from PyQt5.QtCore import QRect, QSize
 from Canvas import Canvas
-from Mesh import Mesh
+from Mesh import Mesh, NHOODS
 from Thread import Thread
 
 CANVAS_WIDTH = 800
@@ -10,7 +10,7 @@ CANVAS_HEIGHT = 800
 MENU_WIDTH = 400
 MENU_HEIGHT = 400
 
-NHOODS = ('moore',)
+DEF_POINTS_SIZE = QSize(400, 400)
 
 
 class MainWindow(QMainWindow):
@@ -23,15 +23,24 @@ class MainWindow(QMainWindow):
         MainWindow.geometry = QRect(app.desktop().screenGeometry().width() - MENU_WIDTH, 300, MENU_WIDTH, MENU_HEIGHT)
         self._init_ui()
         self._started = False
-        self._canvas = None
+        self._mesh = Mesh(DEF_POINTS_SIZE.width(), DEF_POINTS_SIZE.height())
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh, DEF_POINTS_SIZE.width(), DEF_POINTS_SIZE.height())
         self._nhood = NHOODS[0]
         self._periodic = False
+        self._canvas.show()
 
     def _init_ui(self):
         self.setWindowTitle("Grain groth CA")
         self.setGeometry(MainWindow.geometry)
         self._create_widgets()
         self._create_menu()
+
+    def get_canvas__geometry(self):
+        geometry = QRect(MainWindow.geometry.topLeft().x() - CANVAS_WIDTH,
+                         MainWindow.geometry.topLeft().y(),
+                         CANVAS_WIDTH,
+                         CANVAS_HEIGHT)
+        return geometry
 
     def _create_menu(self):
         menu_bar = self.menuBar()
@@ -70,14 +79,14 @@ class MainWindow(QMainWindow):
         self._height = QLineEdit("400")
         main_layout.addWidget(self._height, 1, 4)
 
-        gen_space_btn = QPushButton("generate space")
+        gen_space_btn = QPushButton("change space")
         gen_space_btn.clicked.connect(self._gen_space_btn_clicked)
         main_layout.addWidget(gen_space_btn, 2, 1, 1, 4)
 
         main_layout.addWidget(QLabel('number of grains:'), 3, 1)
         self._grains = QLineEdit("10")
         main_layout.addWidget(self._grains, 3, 2)
-        gen_grains_btn = QPushButton("generate space")
+        gen_grains_btn = QPushButton("generate grains")
         gen_grains_btn.clicked.connect(self._gen_grains_btn_clicked)
         main_layout.addWidget(gen_grains_btn, 3, 3, 1, 2)
 
@@ -103,17 +112,14 @@ class MainWindow(QMainWindow):
         height = int(self._height.text())
         if self._canvas:
             self._canvas.close()
-        geometry = QRect(MainWindow.geometry.topLeft().x() - CANVAS_WIDTH,
-                         MainWindow.geometry.topLeft().y(),
-                         CANVAS_WIDTH,
-                         CANVAS_HEIGHT)
         self._mesh = Mesh(width, height)
-        self._canvas = Canvas(geometry, self._mesh, width, height)
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh, width, height)
         self._canvas.show()
 
-
     def _gen_grains_btn_clicked(self):
-        print("generate grains")
+        nmb_grains = int(self._grains.text())
+        self._mesh.generate_grains(nmb_grains)
+        self._canvas.repaint()
 
     def gen_inclusions_btn_clicked(self):
         print("generate inclusions")
