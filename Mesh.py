@@ -35,6 +35,9 @@ class Mesh:
     def get_points(self):
         return self._points
 
+    def get_size(self):
+        return self._size
+
     def is_completed(self):
         for row in self._points:
             for el in row:

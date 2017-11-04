@@ -5,11 +5,11 @@ from ColorPicker import ColorPicker
 
 class Canvas(QLabel):
 
-    def __init__(self, geometry, mesh, width, height):
+    def __init__(self, geometry, mesh):
         super().__init__()
         self._init_ui(geometry)
         self._mesh = mesh
-        self._nmb_of_points = QSize(width, height)
+        self._nmb_of_points = mesh.get_size()
         self._pixmap = None
 
     def _init_ui(self, geometry):

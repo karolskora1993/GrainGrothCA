@@ -3,6 +3,7 @@ from PyQt5.QtCore import QRect, QSize
 from Canvas import Canvas
 from Mesh import Mesh, NHOODS
 from Thread import Thread
+import FileHandler
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 800
@@ -24,7 +25,7 @@ class MainWindow(QMainWindow):
         self._init_ui()
         self._started = False
         self._mesh = Mesh(DEF_POINTS_SIZE.width(), DEF_POINTS_SIZE.height())
-        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh, DEF_POINTS_SIZE.width(), DEF_POINTS_SIZE.height())
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
         self._nhood = NHOODS[0]
         self._periodic = False
         self._canvas.show()
@@ -118,7 +119,7 @@ class MainWindow(QMainWindow):
         if self._canvas:
             self._canvas.close()
         self._mesh = Mesh(width, height)
-        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh, width, height)
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
         self._canvas.show()
 
     def _gen_grains_btn_clicked(self):
@@ -147,19 +148,26 @@ class MainWindow(QMainWindow):
         height = int(self._height.text())
         self._mesh = Mesh(width, height)
         self._canvas.close()
-        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh, width, height)
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
         self._canvas.show()
         self._canvas.repaint()
 
-    def _import_txt_triggered(self):
-        print("import txt")
+    def _export_txt_triggered(self):
+        path = QFileDialog.getSaveFileName(self)[0]
+        FileHandler.save_mesh(path, self._mesh)
 
     def _import_bmp_triggered(self):
         file_name = QFileDialog.getOpenFileName(self)[0]
         self._canvas.build_from_screenshot(file_name)
 
-    def _export_txt_triggered(self):
-        print("export txt")
+    def _import_txt_triggered(self):
+        path = QFileDialog.getOpenFileName(self)[0]
+        self._mesh = FileHandler.load_mesh(path)
+        self._width.setText(str(self._mesh.get_size().width()))
+        self._height.setText(str(self._mesh.get_size().height()))
+        self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
+        self._canvas.show()
+
 
     def _export_bmp_triggered(self):
         file_name = QFileDialog.getSaveFileName(self)[0]
