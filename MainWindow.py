@@ -155,13 +155,16 @@ class MainWindow(QMainWindow):
         print("import txt")
 
     def _import_bmp_triggered(self):
-        print("import bmp")
+        file_name = QFileDialog.getOpenFileName(self)[0]
+        self._canvas.build_from_screenshot(file_name)
 
     def _export_txt_triggered(self):
         print("export txt")
 
     def _export_bmp_triggered(self):
-        print("export bmp")
+        file_name = QFileDialog.getSaveFileName(self)[0]
+        img = self._canvas.take_screenshot()
+        img.save(file_name, 'bmp')
 
     def _update_UI(self):
         self._canvas.repaint()
