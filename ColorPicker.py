@@ -5,6 +5,8 @@ class ColorPicker:
     def color(id):
         if id == 0:
             return QColor(0, 0, 0)
+        if id ==-1:
+            return QColor(255, 255, 255)
         else:
             if id % 2 == 0:
                 r = (255 - 15 * id) % 255

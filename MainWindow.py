@@ -93,19 +93,27 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(gen_grains_btn, 3, 3, 1, 2)
 
         main_layout.addWidget(QLabel('number of inclusions:'), 4, 1)
-        self._inclusions = QLineEdit("10")
+        self._inclusions = QLineEdit("5")
         main_layout.addWidget(self._inclusions, 4, 2)
-        gen_inclusions_btn = QPushButton("generate inclusions")
+        main_layout.addWidget(QLabel('size of inclusion:'), 4, 3)
+        self._inclusions_size = QLineEdit("1")
+        main_layout.addWidget(self._inclusions_size, 4, 4)
+
+        gen_inclusions_btn = QPushButton("generate square inclusions")
         gen_inclusions_btn.clicked.connect(self.gen_inclusions_btn_clicked)
-        main_layout.addWidget(gen_inclusions_btn, 4, 3, 1, 2)
+        main_layout.addWidget(gen_inclusions_btn, 5, 1, 1, 4)
+
+        gen_inclusions_circle_btn = QPushButton("generate circle inclusions")
+        gen_inclusions_circle_btn.clicked.connect(self.gen_circle_inclusions_btn_clicked)
+        main_layout.addWidget(gen_inclusions_circle_btn, 6, 1, 1, 4)
 
         self._start_btn = QPushButton("START")
         self._start_btn.clicked.connect(self.start_btn_clicked)
-        main_layout.addWidget(self._start_btn, 5, 1, 1, 4)
+        main_layout.addWidget(self._start_btn, 7, 1, 1, 4)
 
         clear_btn = QPushButton("CLEAR")
         clear_btn.clicked.connect(self.clear_btn_clicked)
-        main_layout.addWidget(clear_btn, 6, 1, 1, 4)
+        main_layout.addWidget(clear_btn, 8, 1, 1, 4)
 
         central_w = QWidget()
         central_w.setLayout(main_layout)
@@ -128,7 +136,16 @@ class MainWindow(QMainWindow):
         self._canvas.repaint()
 
     def gen_inclusions_btn_clicked(self):
-        print("generate inclusions")
+        nmb_of_inc = int(self._inclusions.text())
+        size = int(self._inclusions_size.text())
+        self._mesh.generate_square_inclutions(nmb_of_inc, size)
+        self._canvas.repaint()
+
+    def gen_circle_inclusions_btn_clicked(self):
+        nmb_of_inc = int(self._inclusions.text())
+        size = int(self._inclusions_size.text())
+        self._mesh.generate_circle_inclutions(nmb_of_inc, size)
+        self._canvas.repaint()
 
     def start_btn_clicked(self):
         btn = self.sender()

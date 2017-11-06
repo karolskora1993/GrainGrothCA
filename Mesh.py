@@ -2,6 +2,8 @@ from PyQt5.QtCore import QSize
 from Point import Point
 from random import randint
 from copy import deepcopy
+from numpy import array
+from math import sqrt
 
 NHOODS = ('moore',)
 
@@ -43,18 +45,72 @@ class Mesh:
             for el in row:
                 if el.id == 0:
                     return False
-        print("completed")
         return True
 
     def generate_grains(self, nmb_of_grains):
         for i in range(nmb_of_grains):
             x = randint(0, self._size.width() -1)
             y = randint(0, self._size.height() -1)
-            while (self._points[x][y].id != 0):
+            while (self._points[x][y].id != 0 and self._points[x][y].id != -1):
                 x = randint(0, self._size.width() -1)
                 y = randint(0, self._size.height() -1)
             self._points[x][y].id = self._next_id
             self._next_id += 1
+
+
+    def generate_square_inclutions(self, nmb_of_inc, size):
+        for i in range(nmb_of_inc):
+            x = randint(size//2, self._size.width() -size//2 -1)
+            y = randint(size//2, self._size.height() -size//2 -1)
+            nhood = array(self._points)[x-size//2:x+size//2+1,y-size//2:y+size//2+1].tolist()
+            if self.is_completed():
+                while not self._gen_boundary_tab()[x][y] or self._points[x][y].id == -1 or -1 in set(x.id for lst in nhood for x in lst):
+                    x = randint(size//2, self._size.width() - size//2 - 1)
+                    y = randint(size//2, self._size.height() - size//2 - 1)
+                    nhood = array(self._points)[x - size // 2:x + size // 2 + 1, y - size // 2:y + size // 2 + 1].tolist()
+            else:
+                while self._points[x][y].id == -1 or -1 in set(x.id for lst in nhood for x in lst):
+                    x = randint(size//2, self._size.width() - size//2 - 1)
+                    y = randint(size//2, self._size.height() - size//2 - 1)
+                    nhood = array(self._points)[x - size // 2:x + size // 2 + 1, y - size // 2:y + size // 2 + 1].tolist()
+            for row in nhood:
+                for el in row:
+                    el.id = -1
+
+
+    def generate_circle_inclutions(self, nmb_of_inc, size):
+        for i in range(nmb_of_inc):
+            x = randint(size, self._size.width() - size - 2)
+            y = randint(size, self._size.height() - size - 2)
+            nhood = array(self._points)[x-size:x+size+1, y-size:y+size+1].tolist()
+            if self.is_completed():
+                while not self._gen_boundary_tab()[x][y] or self._points[x][y].id == -1 or -1 in set(x.id for lst in nhood for x in lst):
+                    x = randint(size, self._size.width() - size - 2)
+                    y = randint(size, self._size.height() - size - 2)
+                    nhood = array(self._points)[x - size:x + size + 1, y - size:y + size + 1].tolist()
+            else:
+                while self._points[x][y].id == -1 or -1 in set(x.id for lst in nhood for x in lst):
+                    x = randint(size, self._size.width() - size - 2)
+                    y = randint(size, self._size.height() - size - 2)
+                    nhood = array(self._points)[x - size:x + size + 1, y - size:y + size + 1].tolist()
+            x = len(nhood)//2
+            for k, row in enumerate(nhood):
+                for l, el in enumerate(row):
+                    if sqrt(abs(l - x)**2 + abs(k - x)**2) <= size:
+                        el.id = -1
+
+    def _gen_boundary_tab(self):
+        bound_tab = [[False for _ in row] for row in self._points]
+        for i in range(self._size.height()):
+            for j in range(self._size.width()):
+                if self._points[i][j].id != -1 and self._points[i][j].id != 0:
+                    temp = self._gen_temp_points(i, j)
+                    for k in range(3):
+                        for l in range(3):
+                            if temp[k][l] != 0 and temp[k][l] != self._points[i][j].id:
+                                bound_tab[i][j] = True
+        return bound_tab
+
 
     def next(self):
         next_step = [[deepcopy(item) for item in row] for row in self._points]
@@ -66,7 +122,7 @@ class Mesh:
                     for k in range(3):
                         for l in range(3):
                             id = temp[k][l]
-                            if id != 0:
+                            if id != 0 and id != -1:
                                 if id in neighbours:
                                     neighbours[id] += 1
                                 else:
