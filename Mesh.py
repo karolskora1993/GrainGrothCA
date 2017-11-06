@@ -8,13 +8,14 @@ from math import sqrt
 NHOODS = ('moore',)
 
 class Mesh:
-    def __init__(self, x, y):
+    def __init__(self, x, y, prob_rule4=50):
         self._size = QSize(x, y)
         self._init_points()
         self._periodic = False
         self._started = False
         self._nhood = NHOODS[0]
         self._next_id = 1
+        self._prob_rule4 = prob_rule4
 
     def _init_points(self):
         self._points = [[Point(x, y) for y in range(self._size.width())] for x in range(self._size.height())]
@@ -30,6 +31,9 @@ class Mesh:
     def change_started(self):
         self._started = not self._started
         print("started: {0}".format(self._started))
+
+    def set_prob_for_rule4(self, prob):
+        self._prob_rule4 = prob
 
     def is_running(self):
         return self._started
@@ -77,6 +81,79 @@ class Mesh:
                 for el in row:
                     el.id = -1
 
+    def rule_1(self, nhood):
+        neighbours = {}
+        for k in range(3):
+            for l in range(3):
+                id = nhood[k][l]
+                if id != 0 and id != -1:
+                    if id in neighbours:
+                        neighbours[id] += 1
+                    else:
+                        neighbours[id] = 1
+        if neighbours:
+            point_id = max(neighbours, key=lambda key: neighbours[key])
+            if neighbours[point_id] >= 5:
+                return point_id
+        return 0
+
+    def rule_2(self, nhood):
+        nhood[0][0] = 0
+        nhood[0][2] = 0
+        nhood[2][0] = 0
+        nhood[2][2] = 0
+        neighbours = {}
+        for k in range(3):
+            for l in range(3):
+                id = nhood[k][l]
+                if id != 0 and id != -1:
+                    if id in neighbours:
+                        neighbours[id] += 1
+                    else:
+                        neighbours[id] = 1
+        if neighbours:
+            point_id = max(neighbours, key=lambda key: neighbours[key])
+            if neighbours[point_id] >= 3:
+                return point_id
+        return 0
+
+    def rule_3(self, nhood):
+        nhood[0][1] = 0
+        nhood[1][0] = 0
+        nhood[1][2] = 0
+        nhood[2][1] = 0
+        neighbours = {}
+        for k in range(3):
+            for l in range(3):
+                id = nhood[k][l]
+                if id != 0 and id != -1:
+                    if id in neighbours:
+                        neighbours[id] += 1
+                    else:
+                        neighbours[id] = 1
+        if neighbours:
+            point_id = max(neighbours, key=lambda key: neighbours[key])
+            if neighbours[point_id] >= 3:
+                return point_id
+        return 0
+
+    def rule_4(self, nhood):
+        neighbours = {}
+        for k in range(3):
+            for l in range(3):
+                id = nhood[k][l]
+                if id != 0 and id != -1:
+                    if id in neighbours:
+                        neighbours[id] += 1
+                    else:
+                        neighbours[id] = 1
+        if neighbours:
+            point_id = max(neighbours, key=lambda key: neighbours[key])
+            rand_x = randint(1, 100)
+            if rand_x <= self._prob_rule4:
+                return point_id
+        return 0
+
 
     def generate_circle_inclutions(self, nmb_of_inc, size):
         for i in range(nmb_of_inc):
@@ -118,18 +195,15 @@ class Mesh:
             for j in range(self._size.width()):
                 if self._points[i][j].id == 0:
                     temp = self._gen_temp_points(i, j)
-                    neighbours = {}
-                    for k in range(3):
-                        for l in range(3):
-                            id = temp[k][l]
-                            if id != 0 and id != -1:
-                                if id in neighbours:
-                                    neighbours[id] += 1
-                                else:
-                                    neighbours[id] = 1
-                    if neighbours:
-                        point_id = max(neighbours, key=lambda key: neighbours[key])
-                        next_step[i][j].id = point_id
+                    selected_id = self.rule_1(deepcopy(temp))
+                    if selected_id == 0:
+                        selected_id = self.rule_2(deepcopy(temp))
+                    if selected_id == 0:
+                        selected_id = self.rule_3(deepcopy(temp))
+                    if selected_id == 0:
+                        selected_id = self.rule_4(deepcopy(temp))
+                    if selected_id != 0:
+                        next_step[i][j].id = selected_id
         self._points = [row[:] for row in next_step]
 
     def _gen_temp_points(self, i, j):

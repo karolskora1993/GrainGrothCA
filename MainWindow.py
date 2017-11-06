@@ -10,7 +10,7 @@ CANVAS_HEIGHT = 800
 
 MENU_WIDTH = 400
 MENU_HEIGHT = 400
-
+PROB = 50
 DEF_POINTS_SIZE = QSize(100, 100)
 
 
@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
         MainWindow.geometry = QRect(app.desktop().screenGeometry().width() - MENU_WIDTH, 300, MENU_WIDTH, MENU_HEIGHT)
         self._init_ui()
         self._started = False
-        self._mesh = Mesh(DEF_POINTS_SIZE.width(), DEF_POINTS_SIZE.height())
+        self._mesh = Mesh(DEF_POINTS_SIZE.width(), DEF_POINTS_SIZE.height(), PROB)
         self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
         self._nhood = NHOODS[0]
         self._periodic = False
@@ -107,13 +107,18 @@ class MainWindow(QMainWindow):
         gen_inclusions_circle_btn.clicked.connect(self.gen_circle_inclusions_btn_clicked)
         main_layout.addWidget(gen_inclusions_circle_btn, 6, 1, 1, 4)
 
+        main_layout.addWidget(QLabel('probability for rule 4:'), 7, 1)
+        self._prob_rule4 = QLineEdit(str(PROB))
+        main_layout.addWidget(self._prob_rule4, 7, 2)
+        main_layout.addWidget(QLabel('%'), 7, 3)
+
         self._start_btn = QPushButton("START")
         self._start_btn.clicked.connect(self.start_btn_clicked)
-        main_layout.addWidget(self._start_btn, 7, 1, 1, 4)
+        main_layout.addWidget(self._start_btn, 8, 1, 1, 4)
 
         clear_btn = QPushButton("CLEAR")
         clear_btn.clicked.connect(self.clear_btn_clicked)
-        main_layout.addWidget(clear_btn, 8, 1, 1, 4)
+        main_layout.addWidget(clear_btn, 9, 1, 1, 4)
 
         central_w = QWidget()
         central_w.setLayout(main_layout)
@@ -126,7 +131,7 @@ class MainWindow(QMainWindow):
         height = int(self._height.text())
         if self._canvas:
             self._canvas.close()
-        self._mesh = Mesh(width, height)
+        self._mesh = Mesh(width, height, PROB)
         self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
         self._canvas.show()
 
@@ -149,6 +154,8 @@ class MainWindow(QMainWindow):
 
     def start_btn_clicked(self):
         btn = self.sender()
+        prob_rule4 = int(self._prob_rule4.text())
+        self._mesh.set_prob_for_rule4(prob_rule4)
         if self._mesh.is_running():
             btn.setText("START")
         else:
@@ -163,7 +170,8 @@ class MainWindow(QMainWindow):
     def clear_btn_clicked(self):
         width = int(self._width.text())
         height = int(self._height.text())
-        self._mesh = Mesh(width, height)
+        prob_rule4 = int(self._prob_rule4.text())
+        self._mesh = Mesh(width, height, prob_rule4)
         self._canvas.close()
         self._canvas = Canvas(self.get_canvas__geometry(), self._mesh)
         self._canvas.show()

@@ -14,7 +14,7 @@ class Thread(QThread):
         while not self._mesh.is_completed() and self._mesh.is_running():
             self._mesh.next()
             self.update_ui.emit()
-            self.msleep(1)
+            # self.msleep(1)
         self.update_btn.emit()
         print("thread close")
 
