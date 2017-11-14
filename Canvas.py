@@ -32,7 +32,10 @@ class Canvas(QLabel):
         for i, row in enumerate(self._mesh.get_points()):
             for j, item in enumerate(row):
                 qp.setPen(ColorPicker.color(item.id))
-                qp.fillRect(j * point_size, i * point_size, point_size, point_size, ColorPicker.color(item.id))
+                if item.bound:
+                    qp.fillRect(j * point_size, i * point_size, point_size, point_size, ColorPicker.color(-2))
+                else:
+                    qp.fillRect(j * point_size, i * point_size, point_size, point_size, ColorPicker.color(item.id))
 
     def take_screenshot(self):
         return self.grab()

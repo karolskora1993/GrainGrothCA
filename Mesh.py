@@ -16,6 +16,7 @@ class Mesh:
         self._nhood = NHOODS[0]
         self._next_id = 1
         self._prob_rule4 = prob_rule4
+        self._choosen_ids = []
 
     def _init_points(self):
         self._points = [[Point(x, y) for y in range(self._size.width())] for x in range(self._size.height())]
@@ -49,13 +50,15 @@ class Mesh:
             for el in row:
                 if el.id == 0:
                     return False
+        if self._started:
+            self.change_started()
         return True
 
     def generate_grains(self, nmb_of_grains):
         for i in range(nmb_of_grains):
             x = randint(0, self._size.width() -1)
             y = randint(0, self._size.height() -1)
-            while (self._points[x][y].id != 0 and self._points[x][y].id != -1):
+            while self._points[x][y].id != 0 or self._points[x][y].id == -1:
                 x = randint(0, self._size.width() -1)
                 y = randint(0, self._size.height() -1)
             self._points[x][y].id = self._next_id
@@ -154,6 +157,33 @@ class Mesh:
                 return point_id
         return 0
 
+    def clear_rand(self, nb_of_grains, dual_phase = False):
+        self._choosen_ids = []
+        unique_ids = set(point.id for row in self._points for point in row)
+        min_id = min(unique_ids)
+        max_id = max(unique_ids)
+        if nb_of_grains >= max_id:
+            return
+        ids = []
+        for i in range(nb_of_grains):
+            rand_id = randint(min_id, max_id)
+            while rand_id in ids:
+                rand_id = randint(min_id, max_id)
+            ids.append(rand_id)
+
+        if ids:
+            self._choosen_ids = ids
+            for row in self._points:
+                for point in row:
+                    if point.id not in self._choosen_ids and point.id != -1 and point.id != self._next_id:
+                        point.id = 0
+                    if dual_phase:
+                        if point.id in self._choosen_ids:
+                            point.id = self._next_id
+        if dual_phase:
+            self._choosen_ids = [self._next_id]
+            self._next_id += 1
+
 
     def generate_circle_inclutions(self, nmb_of_inc, size):
         for i in range(nmb_of_inc):
@@ -182,11 +212,82 @@ class Mesh:
             for j in range(self._size.width()):
                 if self._points[i][j].id != -1 and self._points[i][j].id != 0:
                     temp = self._gen_temp_points(i, j)
-                    for k in range(3):
-                        for l in range(3):
-                            if temp[k][l] != 0 and temp[k][l] != self._points[i][j].id:
+                    for k in range(2):
+                        for l in range(1, 3):
+                            if temp[k][l] != 0 and temp[k][l] != -1 and temp[k][l] != self._points[i][j].id:
                                 bound_tab[i][j] = True
         return bound_tab
+
+    def gen_boundary_lines(self, line_size):
+        for row in self._points:
+            for el in row:
+                el.bound = False
+
+        boundaries = self._gen_boundary_tab()
+        line_size = line_size // 2
+        for i, row in enumerate(boundaries):
+            for j, el in enumerate(row):
+                if el:
+                    min_x = j
+                    max_x = j + line_size if j + line_size < self._size.width() else self._size.width() - 1
+                    min_y = i - line_size if i - line_size >= 0 else 0
+                    max_y = i
+                    for k in range(min_y, max_y + 1):
+                        for l in range(min_x, max_x + 1):
+                            self._points[k][l].bound = True
+
+
+
+
+    def generate_rand_boundary(self, line_size, nb_of_grains):
+        for row in self._points:
+            for el in row:
+                el.bound = False
+
+        unique_ids = set(point.id for row in self._points for point in row)
+        min_id = min(unique_ids)
+        max_id = max(unique_ids)
+        if nb_of_grains >= max_id:
+            return
+        ids = []
+        for i in range(nb_of_grains):
+            rand_id = randint(min_id, max_id)
+            while rand_id in ids:
+                rand_id = randint(min_id, max_id)
+            ids.append(rand_id)
+
+        if ids:
+            boundaries = self._gen_boundary_tab()
+            line_size = line_size // 2
+            for i, row in enumerate(boundaries):
+                for j, el in enumerate(row):
+                    if el and self._check_for_bound(i, j, ids):
+                        min_x = j
+                        max_x = j + line_size if j + line_size < self._size.width() else self._size.width() - 1
+                        min_y = i - line_size if i - line_size >= 0 else 0
+                        max_y = i
+                        for k in range(min_y, max_y + 1):
+                            for l in range(min_x, max_x + 1):
+                                self._points[k][l].bound = True
+
+    def _check_for_bound(self, i, j, ids):
+        temp = self._gen_temp_points(i, j)
+        for k in range(3):
+            for l in range(3):
+                if temp[k][l] in ids:
+                    return True
+        return False
+
+    def remove_grains(self):
+        for row in self._points:
+            for el in row:
+                el.id = 0
+
+
+    def remove_boundaries(self):
+        for row in self._points:
+            for el in row:
+                el.bound = False
 
 
     def next(self):
@@ -332,5 +433,9 @@ class Mesh:
                 for k in range(-1, 2):
                     for l in range(-1, 2):
                         temp[k + 1][l + 1] = self._points[i + k][j + l].id
+        for i, row in enumerate(temp):
+            for j, el in enumerate(row):
+                if el in self._choosen_ids:
+                    temp[i][j] = 0
         return temp
 

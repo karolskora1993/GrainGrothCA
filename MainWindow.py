@@ -11,7 +11,7 @@ CANVAS_HEIGHT = 800
 MENU_WIDTH = 400
 MENU_HEIGHT = 400
 PROB = 50
-DEF_POINTS_SIZE = QSize(100, 100)
+DEF_POINTS_SIZE = QSize(50, 50)
 
 
 class MainWindow(QMainWindow):
@@ -120,6 +120,39 @@ class MainWindow(QMainWindow):
         clear_btn.clicked.connect(self.clear_btn_clicked)
         main_layout.addWidget(clear_btn, 9, 1, 1, 4)
 
+        main_layout.addWidget(QLabel('number of grains'), 10, 1)
+        self._nb_of_grains = QLineEdit("2")
+        main_layout.addWidget(self._nb_of_grains, 10, 2)
+
+        clear_rand_btn = QPushButton("SELECT GRAINS")
+        clear_rand_btn.clicked.connect(self.clear_rand_btn_clicked)
+        main_layout.addWidget(clear_rand_btn, 10, 3, 1, 4)
+
+        clear_rand_dp_btn = QPushButton("SELECT GRAINS-DP")
+        clear_rand_dp_btn.clicked.connect(self.clear_rand_dp_btn_clicked)
+        main_layout.addWidget(clear_rand_dp_btn, 11, 3, 1, 4)
+
+
+        main_layout.addWidget(QLabel('bound size'), 12, 1)
+        self.bound_size = QLineEdit("1")
+        main_layout.addWidget(self.bound_size, 12, 2)
+
+        draw_bound_btn = QPushButton("DRAW BOUNDARIES")
+        draw_bound_btn.clicked.connect(self.draw_bound_btn_clicked)
+        main_layout.addWidget(draw_bound_btn, 12, 3, 1, 4)
+
+        draw_rand_bound_btn = QPushButton("DRAW RAND BOUNDARIES")
+        draw_rand_bound_btn.clicked.connect(self.draw_rand_bound_btn_clicked)
+        main_layout.addWidget(draw_rand_bound_btn, 13, 3, 1, 4)
+
+        clear_bound_btn = QPushButton("REMOVE GRAINS")
+        clear_bound_btn.clicked.connect(self.clear_bound_btn_clicked)
+        main_layout.addWidget(clear_bound_btn, 14, 3, 1, 4)
+
+        remove_bound_lines_btn = QPushButton("REMOVE BOUND LINES")
+        remove_bound_lines_btn.clicked.connect(self.remove_bound_lines_btn_clicked)
+        main_layout.addWidget(remove_bound_lines_btn, 15, 3, 1, 4)
+
         central_w = QWidget()
         central_w.setLayout(main_layout)
 
@@ -177,6 +210,16 @@ class MainWindow(QMainWindow):
         self._canvas.show()
         self._canvas.repaint()
 
+    def clear_rand_btn_clicked(self):
+        nb_of_grains = int(self._nb_of_grains.text())
+        self._mesh.clear_rand(nb_of_grains)
+        self._canvas.repaint()
+
+    def clear_rand_dp_btn_clicked(self):
+        nb_of_grains = int(self._nb_of_grains.text())
+        self._mesh.clear_rand(nb_of_grains, dual_phase=True)
+        self._canvas.repaint()
+
     def _export_txt_triggered(self):
         path = QFileDialog.getSaveFileName(self)[0]
         FileHandler.save_mesh(path, self._mesh)
@@ -204,9 +247,27 @@ class MainWindow(QMainWindow):
 
     def _update_button(self):
         if self._mesh.is_running():
-            self._start_btn.setText("START")
-        else:
             self._start_btn.setText("STOP")
+        else:
+            self._start_btn.setText("START")
 
+    def draw_bound_btn_clicked(self):
+        line_size = int(self.bound_size.text())
+        self._mesh.gen_boundary_lines(line_size)
+        self._canvas.repaint()
+
+    def clear_bound_btn_clicked(self):
+        self._mesh.remove_grains()
+        self._canvas.repaint()
+
+    def draw_rand_bound_btn_clicked(self):
+        line_size = int(self.bound_size.text())
+        nb_of_grains = int(self._nb_of_grains.text())
+        self._mesh.generate_rand_boundary(line_size, nb_of_grains)
+        self._canvas.repaint()
+
+    def remove_bound_lines_btn_clicked(self):
+        self._mesh.remove_boundaries()
+        self._canvas.repaint()
 
 

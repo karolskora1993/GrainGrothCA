@@ -5,3 +5,4 @@ class Point:
         self.phase = 0
         self._x = x
         self._y = y
+        self.bound = False
